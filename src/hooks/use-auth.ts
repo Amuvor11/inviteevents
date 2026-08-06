@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, signInWithPopup, signOut, type User } from "firebase/auth";
+import {
+  getRedirectResult,
+  onAuthStateChanged,
+  signInWithPopup,
+  signInWithRedirect,
+  signOut,
+  type User,
+} from "firebase/auth";
 import { getFirebaseAuth, googleProvider } from "@/lib/firebase/client";
 import { syncSessionCookie } from "@/lib/auth/sync-session";
 
@@ -16,6 +23,10 @@ export function useAuth() {
       return;
     }
 
+    void getRedirectResult(auth).catch(() => {
+      // Ignore redirect errors; popup/redirect fallback handles sign-in.
+    });
+
     return onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
@@ -28,7 +39,21 @@ export function useAuth() {
   const signInGoogle = async () => {
     const auth = getFirebaseAuth();
     if (!auth) throw new Error("Firebase not configured");
-    await signInWithPopup(auth, googleProvider);
+
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      const code = typeof error === "object" && error && "code" in error
+        ? String((error as { code: unknown }).code)
+        : "";
+
+      // Browsers often block OAuth popups on production domains.
+      if (code === "auth/popup-blocked" || code === "auth/cancelled-popup-request") {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+      throw error;
+    }
   };
 
   const logout = async () => {

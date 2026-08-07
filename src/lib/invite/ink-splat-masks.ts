@@ -60,14 +60,7 @@ export const INK_SPLAT_SHAPES: readonly InkSplatInner[] = [
 
 /** @deprecated Prefer INK_SPLAT_SHAPES + inline SVG; kept for any CSS-mask callers. */
 function blotDataUri(inner: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-    <defs>
-      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="1.8"/>
-      </filter>
-    </defs>
-    <g filter="url(%23soft)">${inner}</g>
-  </svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">${inner}</svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 

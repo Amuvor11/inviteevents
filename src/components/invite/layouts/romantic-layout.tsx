@@ -143,7 +143,7 @@ export function RomanticLayout(props: InviteLayoutProps) {
           </SectionReveal>
         )}
 
-        <RsvpSection {...props} variant="glass" />
+        <RsvpSection {...props} />
       </div>
     </div>
   );

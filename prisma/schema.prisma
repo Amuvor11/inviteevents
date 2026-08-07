@@ -283,15 +283,17 @@ model GuestResponse {
 // ---------------------------------------------------------------------------
 
 model Question {
-  id          String       @id @default(cuid())
-  eventId     String       @map("event_id")
-  type        QuestionType
-  title       String
-  description String?      @db.Text
-  required    Boolean      @default(false)
-  sortOrder   Int          @default(0) @map("sort_order")
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  id           String       @id @default(cuid())
+  eventId      String       @map("event_id")
+  type         QuestionType
+  title        String
+  description  String?      @db.Text
+  placeholder  String?
+  defaultValue String?      @map("default_value")
+  required     Boolean      @default(false)
+  sortOrder    Int          @default(0) @map("sort_order")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
 
   event   Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   options QuestionOption[]

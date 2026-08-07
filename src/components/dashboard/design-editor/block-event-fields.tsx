@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { ImageUploadField } from "@/components/dashboard/image-upload-field";
 import { AudioUploadField } from "@/components/dashboard/audio-upload-field";
@@ -10,6 +9,7 @@ import {
   parseColorShape,
   type DressCodeColorShape,
 } from "@/components/invite/dress-code-colors";
+import { RsvpBlockFields } from "@/components/dashboard/design-editor/rsvp-block-fields";
 import type { DesignBlock } from "@/types/design";
 import type { PublicInviteEvent } from "@/types/invite";
 import { cn } from "@/lib/utils/cn";
@@ -28,9 +28,17 @@ interface BlockEventFieldsProps {
   eventId: string;
   updateEventField: (field: keyof PublicInviteEvent, value: string | null) => void;
   updateBlock: (id: string, patch: Partial<DesignBlock>) => void;
+  onQuestionsChange?: (questions: PublicInviteEvent["questions"]) => void;
 }
 
-export function BlockEventFields({ block, event, eventId, updateEventField, updateBlock }: BlockEventFieldsProps) {
+export function BlockEventFields({
+  block,
+  event,
+  eventId,
+  updateEventField,
+  updateBlock,
+  onQuestionsChange,
+}: BlockEventFieldsProps) {
   switch (block.type) {
     case "hero":
       return (
@@ -501,13 +509,13 @@ export function BlockEventFields({ block, event, eventId, updateEventField, upda
 
     case "rsvp":
       return (
-        <p className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-          RSVP налаштовується автоматично. Персоналізація для гостей — у{" "}
-          <Link href={`/dashboard/events/${eventId}/guests`} className="text-primary underline">
-            Гості
-          </Link>
-          .
-        </p>
+        <RsvpBlockFields
+          block={block}
+          event={event}
+          eventId={eventId}
+          updateBlock={updateBlock}
+          onQuestionsChange={onQuestionsChange ?? (() => {})}
+        />
       );
 
     default:

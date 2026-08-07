@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/api/errors";
 import { assertEventOwner } from "./event.service";
 import type { SubmitAnswerInput, SubmitRsvpInput } from "@/validations/rsvp.schema";
-import { generateInviteToken } from "@/lib/utils/token";
 
 const CHOICE_TYPES: QuestionType[] = ["SINGLE_CHOICE", "MULTIPLE_CHOICE", "SELECT"];
 
@@ -147,20 +146,7 @@ export async function submitRsvp(token: string, input: SubmitRsvpInput) {
   }
 
   return prisma.$transaction(async (tx) => {
-    let groupId = group.id;
-
-    // Walk-in RSVP without pre-created group
-    if (!group.guests.length && !group.response) {
-      const inviteToken = token || generateInviteToken();
-      const newGroup = await tx.guestGroup.create({
-        data: {
-          eventId: event.id,
-          groupName: input.groupName,
-          inviteToken,
-        },
-      });
-      groupId = newGroup.id;
-    }
+    const groupId = group.id;
 
     await tx.guest.deleteMany({ where: { groupId } });
 

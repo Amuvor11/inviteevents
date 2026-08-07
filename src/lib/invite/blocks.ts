@@ -315,7 +315,41 @@ export function createBlock(type: BlockType): DesignBlock {
         style: { ...base.style, fontFamily: "cormorant", fontSize: 16 },
       };
     case "rsvp":
-      return { ...base, data: {} };
+      return {
+        ...base,
+        data: {
+          surface: "theme",
+          showShadow: false,
+          showBorder: false,
+          labels: {},
+          fields: {
+            showResponse: true,
+            showName: true,
+            showGuestType: true,
+            showEmail: true,
+            allowAddGuest: true,
+            showComment: true,
+          },
+          responseOptions: [
+            { id: "attending", label: "Буду", value: "ATTENDING", enabled: true },
+            { id: "not_attending", label: "Не буду", value: "NOT_ATTENDING", enabled: true },
+            { id: "maybe", label: "Можливо", value: "MAYBE", enabled: true },
+          ],
+          formFieldOrder: [
+            "response",
+            "name",
+            "guestType",
+            "email",
+            "addGuest",
+            "questions",
+            "comment",
+          ],
+        },
+        style: {
+          ...base.style,
+          borderRadius: 16,
+        },
+      };
     case "section":
       return {
         ...base,

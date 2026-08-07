@@ -212,7 +212,7 @@ export function ClassicLayout(props: InviteLayoutProps) {
         )}
       </div>
 
-      <RsvpSection {...props} variant="card" />
+      <RsvpSection {...props} />
     </div>
   );
 }

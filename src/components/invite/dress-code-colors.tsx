@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { DEFAULT_ANIMATION_DURATION_MS } from "@/lib/invite/motion";
@@ -52,9 +52,7 @@ export function parseColorShape(raw: unknown): DressCodeColorShape {
 }
 
 function BlobSwatch({ color, index }: { color: string; index: number }) {
-  const uid = useId().replace(/:/g, "");
   const shape = INK_SPLAT_SHAPES[index % INK_SPLAT_SHAPES.length]!;
-  const filterId = `ink-soft-${uid}-${index}`;
   const rot = ((index * 47) % 80) - 40;
 
   return (
@@ -65,17 +63,10 @@ function BlobSwatch({ color, index }: { color: string; index: number }) {
       aria-hidden
       style={{ display: "block", transform: `rotate(${rot}deg)`, overflow: "visible" }}
     >
-      <defs>
-        <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" />
-        </filter>
-      </defs>
-      <g filter={`url(#${filterId})`}>
-        <path fill={color} d={shape.path} />
-        {shape.dots.map((d, i) => (
-          <circle key={i} fill={color} cx={d.cx} cy={d.cy} r={d.r} />
-        ))}
-      </g>
+      <path fill={color} d={shape.path} />
+      {shape.dots.map((d, i) => (
+        <circle key={i} fill={color} cx={d.cx} cy={d.cy} r={d.r} />
+      ))}
     </svg>
   );
 }

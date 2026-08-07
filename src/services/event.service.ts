@@ -184,6 +184,8 @@ export async function duplicateEvent(eventId: string, userId: string) {
             type: q.type,
             title: q.title,
             description: q.description,
+            placeholder: q.placeholder,
+            defaultValue: q.defaultValue,
             required: q.required,
             sortOrder: q.sortOrder,
           },

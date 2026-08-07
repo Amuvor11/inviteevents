@@ -1235,6 +1235,10 @@ export function DesignEditor({
                     eventId={eventId}
                     updateEventField={updateEventField}
                     updateBlock={updateBlock}
+                    onQuestionsChange={(questions) => {
+                      setEvent((prev) => (prev ? { ...prev, questions } : prev));
+                      setSaved(false);
+                    }}
                   />
                   {selectedBlock.type === "section" && (
                     <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">

@@ -56,6 +56,8 @@ export interface PublicInviteEvent {
     type: string;
     title: string;
     description: string | null;
+    placeholder?: string | null;
+    defaultValue?: string | null;
     required: boolean;
     options: { id: string; label: string }[];
   }[];

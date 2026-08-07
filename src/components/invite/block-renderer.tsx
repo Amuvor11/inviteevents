@@ -26,6 +26,7 @@ import { PhotoCarousel } from "@/components/invite/photo-carousel";
 import { GlassCard } from "@/components/invite/glass-card";
 import { Monogram } from "@/components/invite/monogram";
 import { DressCodeColors, parseColorRows, parseColorShape } from "@/components/invite/dress-code-colors";
+import { RsvpFormPreview } from "@/components/invite/rsvp-form-preview";
 import {
   DayProgramTimeline,
   parseDayProgramItems,
@@ -898,10 +899,7 @@ export function BlockRenderer({
     case "rsvp":
       if (preview) {
         return wrap(
-          <GlassCard opacity={theme.glassOpacity} className="p-4">
-            <p className="font-semibold" style={{ color, fontFamily: ff, fontWeight: block.style.fontWeight ?? 600 }}>RSVP</p>
-            <p className="mt-1 text-sm opacity-60">Форма відповіді</p>
-          </GlassCard>,
+          <RsvpFormPreview theme={theme} block={block} questions={event.questions} className="p-4 sm:p-6" />,
         );
       }
       return null;

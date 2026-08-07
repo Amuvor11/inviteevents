@@ -5,6 +5,8 @@ import { useParams, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { resolveInviteContext } from "@/lib/invite/personalization";
 import { parseDesignContent } from "@/lib/invite/blocks";
+import { enabledResponseOptions } from "@/lib/invite/rsvp-copy";
+import { buildDefaultAnswers } from "@/lib/invite/question-defaults";
 import { InviteLayoutRenderer } from "@/components/invite/layouts";
 import { BlockLayout } from "@/components/invite/block-layout";
 import { RsvpSection } from "@/components/invite/rsvp-section";
@@ -45,6 +47,7 @@ export default function PublicInvitePage() {
       .then((j) => {
         if (!j.data) return;
         setEvent(j.data);
+        setAnswers(buildDefaultAnswers(j.data.questions ?? []));
         if (j.data.guest?.guests?.length) {
           setAttendees(
             j.data.guest.guests.map((g: { name: string; attendeeType: string; email: string | null }) => ({
@@ -71,9 +74,22 @@ export default function PublicInvitePage() {
       });
 
       const endpoint = token ? `/api/public/rsvp/${token}` : "/api/public/rsvp";
+      const designBlocksForSubmit = parseDesignContent(event.design?.content).blocks as DesignBlock[];
+      const rsvpBlockForSubmit = designBlocksForSubmit.find((b) => b.type === "rsvp");
+      const responseOpts = enabledResponseOptions(
+        (rsvpBlockForSubmit?.data ?? {}) as Record<string, unknown>,
+        event.customTheme?.locale === "en" ? "en" : "uk",
+      );
+      const apiResponse =
+        responseOpts.find((o) => o.id === response)?.value ??
+        responseOpts.find((o) => o.value === response)?.value ??
+        (["ATTENDING", "NOT_ATTENDING", "MAYBE"].includes(response)
+          ? response
+          : responseOpts[0]?.value ?? "ATTENDING");
+
       const body = token
-        ? { response, message, email: attendees[0]?.email, attendees, answers: answerPayload }
-        : { slug, response, message, email: attendees[0]?.email, attendees, answers: answerPayload };
+        ? { response: apiResponse, message, email: attendees[0]?.email, attendees, answers: answerPayload }
+        : { slug, response: apiResponse, message, email: attendees[0]?.email, attendees, answers: answerPayload };
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -144,14 +160,12 @@ export default function PublicInvitePage() {
 
   if (useBlockDesign) {
     const contentBlocks = designBlocks.filter((b) => b.type !== "rsvp");
-    const showRsvpBlock = designBlocks.some((b) => b.type === "rsvp");
+    const rsvpBlock = designBlocks.find((b) => b.type === "rsvp") ?? null;
 
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen" style={{ backgroundColor: ctx.theme.backgroundColor }}>
         <BlockLayout event={event} ctx={ctx} blocks={contentBlocks} />
-        {showRsvpBlock && (
-          <RsvpSection {...layoutProps} variant="glass" />
-        )}
+        {rsvpBlock && <RsvpSection {...layoutProps} block={rsvpBlock} />}
       </div>
     );
   }

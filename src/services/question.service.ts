@@ -39,7 +39,9 @@ export async function createQuestion(eventId: string, userId: string, input: Cre
       eventId,
       type: input.type,
       title: input.title,
-      description: input.description,
+      description: input.description?.trim() ? input.description : null,
+      placeholder: input.placeholder?.trim() ? input.placeholder : null,
+      defaultValue: input.defaultValue?.trim() ? input.defaultValue : null,
       required: input.required ?? false,
       sortOrder: input.sortOrder ?? (maxOrder._max.sortOrder ?? 0) + 1,
       options: input.options
@@ -56,6 +58,42 @@ export async function createQuestion(eventId: string, userId: string, input: Cre
   });
 }
 
+async function syncQuestionOptions(
+  questionId: string,
+  options: NonNullable<UpdateQuestionInput["options"]>,
+) {
+  const existing = await prisma.questionOption.findMany({ where: { questionId } });
+  const existingIds = new Set(existing.map((o) => o.id));
+  const keepIds: string[] = [];
+
+  for (let i = 0; i < options.length; i++) {
+    const o = options[i]!;
+    const label = o.label.trim();
+    const value = o.value ?? slugifyValue(label);
+    if (o.id && existingIds.has(o.id)) {
+      await prisma.questionOption.update({
+        where: { id: o.id },
+        data: { label, value, sortOrder: o.sortOrder ?? i },
+      });
+      keepIds.push(o.id);
+    } else {
+      const created = await prisma.questionOption.create({
+        data: {
+          questionId,
+          label,
+          value,
+          sortOrder: o.sortOrder ?? i,
+        },
+      });
+      keepIds.push(created.id);
+    }
+  }
+
+  await prisma.questionOption.deleteMany({
+    where: { questionId, id: { notIn: keepIds } },
+  });
+}
+
 export async function updateQuestion(
   questionId: string,
   eventId: string,
@@ -63,13 +101,27 @@ export async function updateQuestion(
   input: UpdateQuestionInput
 ) {
   await assertEventOwner(eventId, userId);
+
+  if (input.options) {
+    await syncQuestionOptions(questionId, input.options);
+  }
+
   return prisma.question.update({
     where: { id: questionId, eventId },
     data: {
       title: input.title,
-      description: input.description,
+      ...(input.description !== undefined
+        ? { description: input.description?.trim() ? input.description : null }
+        : {}),
+      ...(input.placeholder !== undefined
+        ? { placeholder: input.placeholder?.trim() ? input.placeholder : null }
+        : {}),
+      ...(input.defaultValue !== undefined
+        ? { defaultValue: input.defaultValue?.trim() ? input.defaultValue : null }
+        : {}),
       required: input.required,
       sortOrder: input.sortOrder,
+      ...(input.type ? { type: input.type } : {}),
     },
     include: { options: { orderBy: { sortOrder: "asc" } } },
   });

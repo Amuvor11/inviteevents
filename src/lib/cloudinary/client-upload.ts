@@ -1,4 +1,11 @@
-export async function uploadToCloudinary(file: File, eventId: string, subfolder: string): Promise<string> {
+export type CloudinaryResourceType = "image" | "video";
+
+export async function uploadToCloudinary(
+  file: File,
+  eventId: string,
+  subfolder: string,
+  resourceType: CloudinaryResourceType = "image",
+): Promise<string> {
   const folder = `events/${eventId}/${subfolder}`;
   const sigRes = await fetch(
     `/api/upload/signature?eventId=${encodeURIComponent(eventId)}&folder=${encodeURIComponent(folder)}`,
@@ -22,13 +29,13 @@ export async function uploadToCloudinary(file: File, eventId: string, subfolder:
   formData.append("signature", signature);
   formData.append("folder", folder);
 
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
     method: "POST",
     body: formData,
   });
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error?.message ?? "Помилка завантаження зображення");
+    throw new Error(data.error?.message ?? "Помилка завантаження");
   }
 
   return data.secure_url as string;

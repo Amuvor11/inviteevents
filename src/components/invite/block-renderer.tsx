@@ -52,6 +52,11 @@ import {
 import { resolveTextPosition } from "@/components/dashboard/placement-picker";
 import { DraggableCoverText, resolveTextOffset } from "@/components/dashboard/draggable-cover-text";
 import {
+  CoverMusicPlayer,
+  parseMusicPlayerStyle,
+  resolveMusicOffset,
+} from "@/components/invite/cover-music-player";
+import {
   coverEdgeMaskStyle,
   getBottomEdgeStyle,
   getCoverEdgeStyle,
@@ -312,6 +317,45 @@ export function BlockRenderer({
       const textDurationMs = (block.data.textAnimationDuration as number) ?? 550;
       const replay = animationReplayKey ?? 0;
       const canDragText = Boolean(preview && onUpdateData);
+      const musicUrl = event.backgroundMusicUrl?.trim() || "";
+      const showMusicPlayer = block.data.showMusicPlayer === true && Boolean(musicUrl);
+      const musicOffset = resolveMusicOffset(block.data);
+      const musicStyle = parseMusicPlayerStyle(block.data.musicPlayerStyle);
+      const musicTitle = (block.data.musicTitle as string) ?? "";
+      const musicArtist = (block.data.musicArtist as string) ?? "";
+      const musicLoop = block.data.musicLoop !== false;
+      const canDragMusic = Boolean(preview && onUpdateData && showMusicPlayer);
+
+      const musicPlayerNode = showMusicPlayer ? (
+        <DraggableCoverText
+          offset={musicOffset}
+          enabled={canDragMusic}
+          onOffsetChange={
+            onUpdateData
+              ? (o) =>
+                  onUpdateData({
+                    musicOffsetX: Math.round(o.x * 10) / 10,
+                    musicOffsetY: Math.round(o.y * 10) / 10,
+                  })
+              : undefined
+          }
+          className="z-30"
+        >
+          <CoverMusicPlayer
+            src={musicUrl}
+            title={musicTitle}
+            artist={musicArtist}
+            style={musicStyle}
+            loop={musicLoop}
+            autoPlay={!preview}
+          />
+          {canDragMusic && selected && (
+            <p className="mt-1 text-center text-[10px] font-medium tracking-wide text-white/70">
+              Перетягніть плеєр
+            </p>
+          )}
+        </DraggableCoverText>
+      ) : null;
 
       const titleText = event.title?.trim() ?? "";
       const hostsText = event.hostNames?.trim() ?? "";
@@ -394,10 +438,20 @@ export function BlockRenderer({
               >
                 {textBlock}
               </DraggableCoverText>
+              {musicPlayerNode}
             </div>,
           );
         }
-        return wrap(textBlock);
+        return wrap(
+          <>
+            {textBlock}
+            {musicPlayerNode ? (
+              <div className="relative mt-4 min-h-[5rem]">
+                {musicPlayerNode}
+              </div>
+            ) : null}
+          </>,
+        );
       }
 
       const gradientClass =
@@ -455,6 +509,7 @@ export function BlockRenderer({
           >
             {textBlock}
           </DraggableCoverText>
+          {musicPlayerNode}
         </div>,
       );
     }

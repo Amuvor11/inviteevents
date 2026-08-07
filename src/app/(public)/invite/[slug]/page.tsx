@@ -9,6 +9,11 @@ import { InviteLayoutRenderer } from "@/components/invite/layouts";
 import { BlockLayout } from "@/components/invite/block-layout";
 import { RsvpSection } from "@/components/invite/rsvp-section";
 import { GlassCard } from "@/components/invite/glass-card";
+import {
+  EnvelopeIntroScreen,
+  isEnvelopeIntroEnabled,
+} from "@/components/invite/envelope-intro-screen";
+import { InviteLoadingScreen } from "@/components/invite/invite-loading-screen";
 import type { DesignBlock } from "@/types/design";
 import type { PublicInviteEvent, RsvpAttendee } from "@/types/invite";
 
@@ -25,6 +30,7 @@ export default function PublicInvitePage() {
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [envelopeOpened, setEnvelopeOpened] = useState(false);
 
   const preview = searchParams.get("preview") === "1";
 
@@ -81,16 +87,7 @@ export default function PublicInvitePage() {
   };
 
   if (!event) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <motion.p
-          animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-        >
-          Завантаження запрошення...
-        </motion.p>
-      </div>
-    );
+    return <InviteLoadingScreen />;
   }
 
   const ctx = resolveInviteContext(event, event.guest ?? null);
@@ -125,6 +122,23 @@ export default function PublicInvitePage() {
           </GlassCard>
         </motion.div>
       </div>
+    );
+  }
+
+  const envelopeSettings =
+    ctx.theme.envelopeIntro ??
+    (event.customTheme as { envelopeIntro?: typeof ctx.theme.envelopeIntro } | null)?.envelopeIntro;
+  const showEnvelope = isEnvelopeIntroEnabled(envelopeSettings) && !envelopeOpened;
+
+  if (showEnvelope) {
+    return (
+      <EnvelopeIntroScreen
+        theme={ctx.theme}
+        monogram={ctx.monogram}
+        settings={envelopeSettings}
+        musicUrl={event.backgroundMusicUrl}
+        onOpen={() => setEnvelopeOpened(true)}
+      />
     );
   }
 

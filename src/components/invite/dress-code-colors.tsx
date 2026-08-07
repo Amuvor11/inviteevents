@@ -1,9 +1,10 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { motion } from "framer-motion";
-import { BLOCK_IN_VIEW_END, DEFAULT_ANIMATION_DURATION_MS } from "@/lib/invite/motion";
-import { INK_SPLAT_MASKS } from "@/lib/invite/ink-splat-masks";
+import { useEffect, useId, useState, type CSSProperties } from "react";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
+import { DEFAULT_ANIMATION_DURATION_MS } from "@/lib/invite/motion";
+import { INK_SPLAT_SHAPES } from "@/lib/invite/ink-splat-masks";
 
 export type DressCodeColorShape = "circle" | "blob" | "soft" | "square" | "diamond" | "hex";
 
@@ -50,29 +51,39 @@ export function parseColorShape(raw: unknown): DressCodeColorShape {
   return "circle";
 }
 
-function splatMaskStyle(color: string, index: number): CSSProperties {
-  const mask = INK_SPLAT_MASKS[index % INK_SPLAT_MASKS.length]!;
-  return {
-    border: "none",
-    borderRadius: 0,
-    backgroundColor: color,
-    WebkitMaskImage: mask,
-    maskImage: mask,
-    WebkitMaskSize: "100% 100%",
-    maskSize: "100% 100%",
-    WebkitMaskRepeat: "no-repeat",
-    maskRepeat: "no-repeat",
-    WebkitMaskPosition: "center",
-    maskPosition: "center",
-    transform: `rotate(${((index * 47) % 80) - 40}deg)`,
-  };
+function BlobSwatch({ color, index }: { color: string; index: number }) {
+  const uid = useId().replace(/:/g, "");
+  const shape = INK_SPLAT_SHAPES[index % INK_SPLAT_SHAPES.length]!;
+  const filterId = `ink-soft-${uid}-${index}`;
+  const rot = ((index * 47) % 80) - 40;
+
+  return (
+    <svg
+      viewBox="0 0 120 120"
+      width="100%"
+      height="100%"
+      aria-hidden
+      style={{ display: "block", transform: `rotate(${rot}deg)`, overflow: "visible" }}
+    >
+      <defs>
+        <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" />
+        </filter>
+      </defs>
+      <g filter={`url(#${filterId})`}>
+        <path fill={color} d={shape.path} />
+        {shape.dots.map((d, i) => (
+          <circle key={i} fill={color} cx={d.cx} cy={d.cy} r={d.r} />
+        ))}
+      </g>
+    </svg>
+  );
 }
 
 function swatchStyle(
   color: string,
   shape: DressCodeColorShape,
   size: number,
-  index: number,
 ): CSSProperties {
   const base: CSSProperties = {
     width: "100%",
@@ -82,28 +93,29 @@ function swatchStyle(
 
   switch (shape) {
     case "soft": {
-      const blurPx = Math.max(5, Math.round(size * 0.18));
+      // Soft glow via box-shadow — CSS filter:blur often clips to invisible on iOS.
+      const glow = Math.max(6, Math.round(size * 0.22));
       return {
         ...base,
-        width: "72%",
-        height: "72%",
+        width: "58%",
+        height: "58%",
         margin: "auto",
         borderRadius: "50%",
-        border: "none",
         backgroundColor: color,
-        filter: `blur(${blurPx}px)`,
+        boxShadow: `0 0 ${glow}px ${glow}px ${color}`,
       };
     }
     case "blob":
       return {
         ...base,
-        ...splatMaskStyle(color, index),
+        background: "transparent",
+        border: "none",
       };
     case "square":
       return {
         ...base,
         borderRadius: Math.max(4, Math.round(size * 0.18)),
-        border: "1px solid rgba(0,0,0,0.1)",
+        border: "1px solid rgba(0,0,0,0.12)",
         backgroundColor: color,
         boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
       };
@@ -114,7 +126,7 @@ function swatchStyle(
         height: "72%",
         margin: "auto",
         borderRadius: Math.max(3, Math.round(size * 0.12)),
-        border: "1px solid rgba(0,0,0,0.1)",
+        border: "1px solid rgba(0,0,0,0.12)",
         backgroundColor: color,
         transform: "rotate(45deg)",
         boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
@@ -131,7 +143,7 @@ function swatchStyle(
       return {
         ...base,
         borderRadius: "50%",
-        border: "1px solid rgba(0,0,0,0.1)",
+        border: "1px solid rgba(0,0,0,0.14)",
         backgroundColor: color,
         boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
       };
@@ -164,61 +176,67 @@ export function DressCodeColors({
   const rows = chunkColorsByRows(colors, rowSizes);
   const gap = Math.max(8, Math.round(size * 0.28));
   let index = 0;
+  const ref = useRef<HTMLDivElement>(null);
+  // Large margin — mobile Safari often misses tight whileInView near fold / page end.
+  const inView = useInView(ref, { once: true, amount: 0.01, margin: "50% 0px" });
+  const [forceShow, setForceShow] = useState(preview);
 
-  const containerVariants = {
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: staggerMs / 1000,
-      },
-    },
-  };
+  useEffect(() => {
+    if (preview) {
+      setForceShow(true);
+      return;
+    }
+    setForceShow(false);
+    const t = window.setTimeout(() => setForceShow(true), 350);
+    return () => window.clearTimeout(t);
+  }, [replayKey, preview]);
 
-  const itemVariants = {
-    hidden: { opacity: 0, scale: 0.55 },
-    show: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: durationMs / 1000,
-        ease: [0.22, 1, 0.36, 1] as const,
-      },
-    },
-  };
+  const visible = preview || inView || forceShow;
 
   return (
-    <motion.div
+    <div
       key={replayKey}
+      ref={ref}
       className={`flex flex-col items-center ${className}`}
-      style={{ gap }}
-      variants={containerVariants}
-      initial="hidden"
-      {...(preview
-        ? { animate: "show" }
-        : {
-            whileInView: "show",
-            // End-of-page friendly: last block still triggers when you can't scroll further
-            viewport: BLOCK_IN_VIEW_END,
-          })}
+      style={{ gap, minHeight: size }}
     >
       {rows.map((row, rowI) => (
-        <div key={`row-${rowI}`} className="flex items-center justify-center" style={{ gap }}>
+        <div
+          key={`row-${rowI}`}
+          className="flex flex-wrap items-center justify-center"
+          style={{ gap }}
+        >
           {row.map((c) => {
             const i = index++;
             return (
               <motion.span
                 key={`${c}-${i}`}
-                variants={itemVariants}
+                initial={preview ? false : { opacity: 0, scale: 0.7 }}
+                animate={visible ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.7 }}
+                transition={{
+                  duration: durationMs / 1000,
+                  delay: visible ? (i * staggerMs) / 1000 : 0,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
                 className="inline-flex shrink-0 items-center justify-center overflow-visible"
                 style={{ width: size, height: size }}
                 title={c}
               >
-                <span className="block h-full w-full overflow-visible" style={swatchStyle(c, shape, size, i)} />
+                {shape === "blob" ? (
+                  <span className="block h-full w-full overflow-visible">
+                    <BlobSwatch color={c} index={i} />
+                  </span>
+                ) : (
+                  <span
+                    className="block h-full w-full overflow-visible"
+                    style={swatchStyle(c, shape, size)}
+                  />
+                )}
               </motion.span>
             );
           })}
         </div>
       ))}
-    </motion.div>
+    </div>
   );
 }

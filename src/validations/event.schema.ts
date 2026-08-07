@@ -19,6 +19,68 @@ export const customThemeSchema = z.object({
   pagePaddingLeft: z.number().min(0).max(120).nullish(),
   pagePaddingRight: z.number().min(0).max(120).nullish(),
   blockGap: z.number().min(0).max(80).nullish(),
+  envelopeIntro: z
+    .object({
+      enabled: z.boolean().nullish(),
+      autoOpenSeconds: z.number().min(0).max(120).nullish(),
+      contentAlign: z.enum(["top", "center", "bottom"]).nullish(),
+      paddingTop: z.number().min(0).max(200).nullish(),
+      paddingBottom: z.number().min(0).max(200).nullish(),
+      paddingX: z.number().min(0).max(80).nullish(),
+      layout: z.enum(["top", "center", "bottom"]).nullish(),
+      blocks: z
+        .array(
+          z.object({
+            id: z.string(),
+            type: z.enum(["title", "subtitle", "cta", "arrow", "envelope"]),
+            visible: z.boolean().nullish(),
+            text: z.string().max(120).nullish(),
+            marginTop: z.number().min(0).max(100).nullish(),
+            marginBottom: z.number().min(0).max(100).nullish(),
+            align: z.enum(["left", "center", "right"]).nullish(),
+            pinBottom: z.boolean().nullish(),
+            textStyle: z
+              .object({
+                fontFamily: z.string().nullish(),
+                fontSize: z.number().min(10).max(96).nullish(),
+                color: z.string().nullish(),
+                fontWeight: z.union([z.literal(400), z.literal(500), z.literal(600), z.literal(700)]).nullish(),
+                fontStyle: z.enum(["normal", "italic"]).nullish(),
+                textDecoration: z.enum(["none", "underline"]).nullish(),
+              })
+              .nullish(),
+            offsetX: z.number().min(0).max(100).nullish(),
+            offsetY: z.number().min(0).max(100).nullish(),
+          }),
+        )
+        .nullish(),
+      title: z.string().max(120).nullish(),
+      showTitle: z.boolean().nullish(),
+      titleFont: z.string().max(40).nullish(),
+      titleSize: z.number().min(16).max(64).nullish(),
+      titleItalic: z.boolean().nullish(),
+      textColor: z.string().nullish(),
+      ctaLabel: z.string().max(80).nullish(),
+      showCta: z.boolean().nullish(),
+      showArrow: z.boolean().nullish(),
+      subtitle: z.string().max(120).nullish(),
+      showSubtitle: z.boolean().nullish(),
+      monogram: z.string().max(8).nullish(),
+      showSeal: z.boolean().nullish(),
+      showPlayIcon: z.boolean().nullish(),
+      sealColor: z.string().nullish(),
+      sealSize: z.enum(["sm", "md", "lg"]).nullish(),
+      backgroundColor: z.string().nullish(),
+      backgroundImageUrl: z.string().nullish(),
+      backgroundOverlay: z.number().min(0).max(1).nullish(),
+      envelopeColor: z.string().nullish(),
+      flapColor: z.string().nullish(),
+      envelopeImageUrl: z.string().nullish(),
+      envelopeStyle: z.enum(["classic", "photo", "minimal"]).nullish(),
+      envelopeWidth: z.enum(["narrow", "normal", "wide"]).nullish(),
+      contentGap: z.number().min(0).max(64).nullish(),
+    })
+    .nullish(),
   hiddenSections: z
     .array(
       z.enum([
@@ -76,6 +138,8 @@ export const createEventSchema = z.object({
 });
 
 export const updateEventSchema = createEventSchema.partial().extend({
+  // Allow clearing the cover title in the design editor
+  title: z.string().max(200).optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED", "CANCELLED"]).optional(),
   rsvpClosed: z.boolean().optional(),
   slug: z.string().min(3).max(100).optional(),

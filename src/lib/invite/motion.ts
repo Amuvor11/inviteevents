@@ -3,13 +3,14 @@ import type { BlockAnimation } from "@/types/design";
 export const DEFAULT_ANIMATION_DURATION_MS = 550;
 
 /**
- * Start when ~100px of the block has entered the viewport.
- * Bottom rootMargin insets the trigger line 100px above the screen bottom.
+ * Trigger as soon as any part enters the viewport.
+ * Avoid a large negative bottom margin — on phones (dynamic URL bar + short
+ * last blocks like dress-code swatches) it left content stuck at opacity 0.
  */
 export const BLOCK_IN_VIEW = {
   once: true,
   amount: "some" as const,
-  margin: "0px 0px -100px 0px",
+  margin: "0px 0px 80px 0px",
 };
 
 /**

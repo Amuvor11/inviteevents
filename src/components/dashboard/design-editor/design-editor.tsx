@@ -44,6 +44,16 @@ import { IMAGE_BLOCK_TYPES } from "@/lib/invite/block-style-utils";
 import { ImageUploadField } from "@/components/dashboard/image-upload-field";
 import { resolveInviteContext } from "@/lib/invite/personalization";
 import {
+  EnvelopeIntroScreen,
+} from "@/components/invite/envelope-intro-screen";
+import {
+  EnvelopeIntroLeftPanel,
+  EnvelopeIntroRightPanel,
+  EnvelopeIntroStructurePanel,
+} from "@/components/dashboard/design-editor/envelope-intro-editor";
+import type { EnvelopeIntroSettings } from "@/types";
+import { resolveEnvelopeBlocks } from "@/lib/invite/envelope-blocks";
+import {
   BLOCK_CATALOG,
   createBlock,
   createDefaultDesign,
@@ -242,6 +252,9 @@ export function DesignEditor({
   const [activeDropId, setActiveDropId] = useState<string | null>(null);
   const [activeSectionDropId, setActiveSectionDropId] = useState<string | null>(null);
   const [animationReplayKey, setAnimationReplayKey] = useState(0);
+  const [canvasView, setCanvasView] = useState<"invite" | "envelope">("invite");
+  const [envelopePreviewKey, setEnvelopePreviewKey] = useState(0);
+  const [selectedEnvelopeBlockId, setSelectedEnvelopeBlockId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -707,7 +720,7 @@ export function DesignEditor({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: event.title.trim() || "Запрошення",
+          title: event.title.trim(),
           hostNames: event.hostNames ?? "",
           coverImageUrl: event.coverImageUrl ?? "",
           eventDate: event.eventDate,
@@ -717,6 +730,7 @@ export function DesignEditor({
           dressCode: event.dressCode ?? "",
           invitationMessage: event.invitationMessage ?? "",
           additionalInfo: event.additionalInfo ?? "",
+          backgroundMusicUrl: event.backgroundMusicUrl ?? "",
           backgroundImageUrl: backgroundImageUrl || "",
           customTheme,
           designContent,
@@ -758,9 +772,35 @@ export function DesignEditor({
     setSaved(false);
   };
 
+  const updateEnvelopeIntro = (patch: Partial<EnvelopeIntroSettings>) => {
+    setCustomTheme((prev) => ({
+      ...prev,
+      envelopeIntro: { ...prev.envelopeIntro, ...patch },
+    }));
+    setSaved(false);
+  };
+
+  const enterEnvelopeMode = () => {
+    setCustomTheme((prev) => {
+      const current = prev.envelopeIntro ?? {};
+      if (Array.isArray(current.blocks) && current.blocks.length > 0) return prev;
+      return {
+        ...prev,
+        envelopeIntro: { ...current, blocks: resolveEnvelopeBlocks(current) },
+      };
+    });
+    setSaved(false);
+    setCanvasView("envelope");
+    setEnvelopePreviewKey((k) => k + 1);
+    setSelectedEnvelopeBlockId(null);
+  };
+
   if (!event || !previewEvent || !ctx) {
     return <div className="flex h-full items-center justify-center text-muted-foreground">Завантаження редактора...</div>;
   }
+
+  const envelopeSettings = customTheme.envelopeIntro ?? {};
+  const envelopeMode = canvasView === "envelope";
 
   const rightTabs: { id: RightTab; label: string; icon: React.ElementType }[] = [
     { id: "block", label: "Блок", icon: Settings2 },
@@ -802,55 +842,136 @@ export function DesignEditor({
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(280px,320px)_minmax(0,1fr)_minmax(300px,360px)]">
-        {/* LEFT — Add blocks palette */}
+        {/* LEFT — Add blocks palette OR envelope elements */}
         <aside className="overflow-y-auto border-r border-border bg-muted/20 p-5">
-          <PanelHeader icon={Plus} title="Додати блоки" subtitle="Натисніть + або перетягніть на дизайн" />
-          <div className="grid grid-cols-1 gap-1.5">
-            {BLOCK_CATALOG.map((b) => (
-              <DraggablePaletteItem
-                key={b.type}
-                type={b.type}
-                icon={b.icon}
-                label={BLOCK_TYPE_LABELS[b.type] ?? b.label}
-                onAdd={() => addBlock(b.type)}
-              />
-            ))}
-          </div>
+          {envelopeMode ? (
+            <EnvelopeIntroLeftPanel
+              settings={envelopeSettings}
+              onChange={updateEnvelopeIntro}
+              eventId={eventId}
+              selectedBlockId={selectedEnvelopeBlockId}
+              onSelectBlock={setSelectedEnvelopeBlockId}
+            />
+          ) : (
+            <>
+              <PanelHeader icon={Plus} title="Додати блоки" subtitle="Натисніть + або перетягніть на дизайн" />
+              <div className="grid grid-cols-1 gap-1.5">
+                {BLOCK_CATALOG.map((b) => (
+                  <DraggablePaletteItem
+                    key={b.type}
+                    type={b.type}
+                    icon={b.icon}
+                    label={BLOCK_TYPE_LABELS[b.type] ?? b.label}
+                    onAdd={() => addBlock(b.type)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </aside>
 
         {/* CENTER — Live preview */}
         <main className="relative flex min-h-0 flex-col overflow-hidden bg-zinc-300/80">
-          <div className="flex shrink-0 items-center justify-center gap-2 border-b border-zinc-400/50 bg-zinc-200/80 px-4 py-2 text-xs text-zinc-600">
+          <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 border-b border-zinc-400/50 bg-zinc-200/80 px-4 py-2 text-xs text-zinc-600">
             <Eye className="h-3.5 w-3.5" />
-            Зразок запрошення — перетягніть блоки сюди або натисніть +
+            <div className="flex rounded-md border border-zinc-400/60 bg-white/70 p-0.5">
+              <button
+                type="button"
+                onClick={() => setCanvasView("invite")}
+                className={cn(
+                  "rounded px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  canvasView === "invite" ? "bg-zinc-900 text-white" : "text-zinc-600 hover:text-zinc-900",
+                )}
+              >
+                Запрошення
+              </button>
+              <button
+                type="button"
+                onClick={() => enterEnvelopeMode()}
+                className={cn(
+                  "rounded px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  canvasView === "envelope" ? "bg-zinc-900 text-white" : "text-zinc-600 hover:text-zinc-900",
+                )}
+              >
+                Екран перед запрошенням
+              </button>
+            </div>
           </div>
           <div className="flex flex-1 items-start justify-center overflow-y-auto bg-[#c4c4c8] p-8">
             <div className="w-full max-w-[390px]">
               <div className="overflow-hidden rounded-[2.5rem] border-[12px] border-zinc-950 bg-white shadow-[0_28px_60px_-12px_rgba(0,0,0,0.55)]">
-                <div className="relative h-[680px] overflow-y-auto" style={{ borderRadius: EDITOR_SCREEN_RADIUS }}>
-                  <EditorBlockCanvas
-                    event={previewEvent}
-                    ctx={ctx}
-                    blocks={blocks}
-                    selectedBlockId={selectedId}
-                    onSelectBlock={selectBlock}
-                    activeDropId={activeDropId}
-                    activeSectionDropId={activeSectionDropId}
-                    dragActive={!!draggingPaletteType || !!activeDropId || !!activeSectionDropId}
-                    onUpdateBlockStyle={(id, style) => updateBlock(id, { style })}
-                    onUpdateBlockData={(id, data) => updateBlock(id, { data })}
-                    onDeselectBlock={() => setSelectedId(null)}
-                    animationReplayKey={animationReplayKey}
-                    animationReplayBlockId={selectedId}
-                  />
+                <div
+                  className={cn(
+                    "relative h-[680px]",
+                    canvasView === "envelope" ? "overflow-hidden" : "overflow-y-auto",
+                  )}
+                  style={{ borderRadius: EDITOR_SCREEN_RADIUS }}
+                >
+                  {canvasView === "envelope" ? (
+                    <EnvelopeIntroScreen
+                      key={envelopePreviewKey}
+                      embedded
+                      editable
+                      theme={ctx.theme}
+                      monogram={ctx.monogram}
+                      settings={envelopeSettings}
+                      selectedBlockId={selectedEnvelopeBlockId}
+                      onSelectBlock={setSelectedEnvelopeBlockId}
+                      onOpen={() => {
+                        setCanvasView("invite");
+                        setEnvelopePreviewKey((k) => k + 1);
+                      }}
+                    />
+                  ) : (
+                    <EditorBlockCanvas
+                      event={previewEvent}
+                      ctx={ctx}
+                      blocks={blocks}
+                      selectedBlockId={selectedId}
+                      onSelectBlock={selectBlock}
+                      activeDropId={activeDropId}
+                      activeSectionDropId={activeSectionDropId}
+                      dragActive={!!draggingPaletteType || !!activeDropId || !!activeSectionDropId}
+                      onUpdateBlockStyle={(id, style) => updateBlock(id, { style })}
+                      onUpdateBlockData={(id, data) => updateBlock(id, { data })}
+                      onDeselectBlock={() => setSelectedId(null)}
+                      animationReplayKey={animationReplayKey}
+                      animationReplayBlockId={selectedId}
+                    />
+                  )}
                 </div>
               </div>
+              {canvasView === "envelope" && (
+                <p className="mt-3 text-center text-[11px] text-zinc-600">
+                  Порядок — перетягніть у «Структура» справа · відступи блоку — зліва
+                </p>
+              )}
             </div>
           </div>
         </main>
 
-        {/* RIGHT — Structure + settings */}
+        {/* RIGHT — Structure + settings OR envelope style */}
         <aside className="flex min-h-0 flex-col overflow-hidden border-l border-border bg-background">
+          {envelopeMode ? (
+            <>
+              <EnvelopeIntroStructurePanel
+                settings={envelopeSettings}
+                onChange={updateEnvelopeIntro}
+                selectedBlockId={selectedEnvelopeBlockId}
+                onSelectBlock={setSelectedEnvelopeBlockId}
+              />
+              <div className="flex-1 overflow-y-auto">
+                <EnvelopeIntroRightPanel
+                  settings={envelopeSettings}
+                  onChange={updateEnvelopeIntro}
+                  enabled={envelopeSettings.enabled === true}
+                  onEnabledChange={(v) => updateEnvelopeIntro({ enabled: v })}
+                  selectedBlockId={selectedEnvelopeBlockId}
+                />
+              </div>
+            </>
+          ) : (
+          <>
           <div className="shrink-0 border-b border-border p-4">
             <PanelHeader
               icon={Layers}
@@ -997,6 +1118,31 @@ export function DesignEditor({
                       <option value="inline">В рядок</option>
                     </Select>
                   </div>
+
+                  <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Екран перед запрошенням
+                    </p>
+                    <ToggleSwitch
+                      label="Показувати гостям"
+                      checked={customTheme.envelopeIntro?.enabled === true}
+                      onChange={(v) => {
+                        updateEnvelopeIntro({ enabled: v });
+                        if (v) enterEnvelopeMode();
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => enterEnvelopeMode()}
+                      className="w-full rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-[11px] font-medium text-primary hover:bg-primary/10"
+                    >
+                      Редагувати екран-конверт
+                    </button>
+                    <p className="text-[10px] leading-snug text-muted-foreground">
+                      Фото, тексти, кольори та розміщення — у режимі «Екран перед запрошенням».
+                    </p>
+                  </div>
+
                   <div className="rounded-lg border border-border bg-muted/30 p-3">
                     <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Відступи сторінки
@@ -1333,6 +1479,52 @@ export function DesignEditor({
                               defaults={{ fontSize: 14, color: "#ffffff" }}
                             />
                           </>
+                        )}
+                      </div>
+
+                      <div>
+                        <ToggleSwitch
+                          label="Музичний плеєр"
+                          checked={selectedBlock.data.showMusicPlayer === true}
+                          onChange={(v) => updateBlock(selectedBlock.id, { data: { showMusicPlayer: v } })}
+                        />
+                        {selectedBlock.data.showMusicPlayer === true && (
+                          <div className="mt-2 space-y-2">
+                            <Label className="mb-1.5 block text-xs text-muted-foreground">Стиль плеєра</Label>
+                            <div className="grid grid-cols-3 gap-1">
+                              {(
+                                [
+                                  { id: "overlay", label: "Overlay" },
+                                  { id: "pill", label: "Pill" },
+                                  { id: "disc", label: "Disc" },
+                                ] as const
+                              ).map(({ id, label }) => (
+                                <button
+                                  key={id}
+                                  type="button"
+                                  onClick={() =>
+                                    updateBlock(selectedBlock.id, { data: { musicPlayerStyle: id } })
+                                  }
+                                  className={cn(
+                                    "rounded-md border px-1.5 py-1.5 text-[10px] font-medium transition-colors",
+                                    ((selectedBlock.data.musicPlayerStyle as string) ?? "overlay") === id
+                                      ? "border-primary bg-primary/10 text-primary"
+                                      : "border-border text-muted-foreground hover:border-primary/40",
+                                  )}
+                                >
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[10px] leading-snug text-muted-foreground">
+                              Перетягніть плеєр на обкладинці, щоб змінити позицію. Трек і метадані — у лівій панелі.
+                            </p>
+                            {!event?.backgroundMusicUrl && (
+                              <p className="text-[10px] text-amber-700">
+                                Додайте файл або URL музики в даних блоку зліва.
+                              </p>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1732,6 +1924,8 @@ export function DesignEditor({
               </div>
             )}
           </div>
+          </>
+          )}
         </aside>
       </div>
     </div>

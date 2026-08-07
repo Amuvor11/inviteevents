@@ -1,4 +1,5 @@
 import type { ScheduleItem } from "@/types";
+import type { EnvelopeIntroSettings } from "@/types";
 import type { GuestInviteContext, InviteSection } from "@/types/personalization";
 
 export type CountdownStyle = "cards" | "elegant" | "inline";
@@ -23,6 +24,7 @@ export interface InviteTheme {
   pagePaddingLeft?: number;
   pagePaddingRight?: number;
   blockGap?: number;
+  envelopeIntro?: EnvelopeIntroSettings;
 }
 
 export interface PublicInviteEvent {

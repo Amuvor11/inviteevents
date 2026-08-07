@@ -4,12 +4,13 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { uk, enUS } from "date-fns/locale";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Music } from "lucide-react";
+import { Calendar, Clock, MapPin } from "lucide-react";
 import type { ScheduleItem } from "@/types";
 import { AnimatedCountdown } from "@/components/invite/animated-countdown";
 import { CalendarWidget } from "@/components/invite/calendar-widget";
 import { GlassCard } from "@/components/invite/glass-card";
 import { PhotoCarousel } from "@/components/invite/photo-carousel";
+import { CoverMusicPlayer } from "@/components/invite/cover-music-player";
 import { RsvpSection } from "@/components/invite/rsvp-section";
 import { SectionReveal } from "@/components/invite/section-reveal";
 import type { InviteLayoutProps } from "./types";
@@ -191,11 +192,14 @@ export function ClassicLayout(props: InviteLayoutProps) {
         )}
 
         {isSectionVisible("music") && event.backgroundMusicUrl && (
-          <div className="flex items-center justify-center gap-2 text-sm opacity-60">
-            <Music className="h-4 w-4" />
-            <a href={event.backgroundMusicUrl} target="_blank" rel="noopener noreferrer" className="underline">
-              {isUk ? "Фонова музика" : "Background music"}
-            </a>
+          <div className="flex justify-center">
+            <CoverMusicPlayer
+              src={event.backgroundMusicUrl}
+              title={isUk ? "Фонова музика" : "Background music"}
+              style="pill"
+              loop
+              autoPlay
+            />
           </div>
         )}
 

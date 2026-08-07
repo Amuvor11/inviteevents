@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { ImageUploadField } from "@/components/dashboard/image-upload-field";
+import { AudioUploadField } from "@/components/dashboard/audio-upload-field";
 import {
   DRESS_CODE_SHAPES,
   parseColorRows,
@@ -37,7 +38,14 @@ export function BlockEventFields({ block, event, eventId, updateEventField, upda
           <p className="text-xs font-medium text-primary">Дані блоку</p>
           <div>
             <Label>Назва події</Label>
-            <Input value={event.title} onChange={(e) => updateEventField("title", e.target.value)} />
+            <Input
+              value={event.title}
+              onChange={(e) => updateEventField("title", e.target.value)}
+              placeholder="Залиште порожнім, щоб приховати"
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Порожня назва не показується на обкладинці
+            </p>
           </div>
           <div>
             <Label>Імена організаторів</Label>
@@ -61,6 +69,29 @@ export function BlockEventFields({ block, event, eventId, updateEventField, upda
             fillColor={block.style.backgroundColor ?? "#7c3aed"}
             onFillColorChange={(c) => updateBlock(block.id, { style: { backgroundColor: c } })}
           />
+          <AudioUploadField
+            label="Музика на обкладинці"
+            value={event.backgroundMusicUrl ?? ""}
+            onChange={(url) => updateEventField("backgroundMusicUrl", url || null)}
+            eventId={eventId}
+            folder="music"
+          />
+          <div>
+            <Label>Назва треку</Label>
+            <Input
+              value={(block.data.musicTitle as string) ?? ""}
+              onChange={(e) => updateBlock(block.id, { data: { musicTitle: e.target.value } })}
+              placeholder="shape of my heart"
+            />
+          </div>
+          <div>
+            <Label>Виконавець</Label>
+            <Input
+              value={(block.data.musicArtist as string) ?? ""}
+              onChange={(e) => updateBlock(block.id, { data: { musicArtist: e.target.value } })}
+              placeholder="Sting"
+            />
+          </div>
         </div>
       );
 

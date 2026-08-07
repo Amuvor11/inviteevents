@@ -18,6 +18,74 @@ export type {
 
 export type { EventAnalytics, DashboardAnalytics, QuestionAnalytics, SurveyAnalyticsSummary } from "./analytics";
 
+import type { TextElementStyle } from "@/types/design";
+
+export type EnvelopeIntroBlockType = "title" | "subtitle" | "cta" | "arrow" | "envelope";
+
+export interface EnvelopeIntroBlock {
+  id: string;
+  type: EnvelopeIntroBlockType;
+  visible?: boolean;
+  /** Optional text override for title / subtitle / cta */
+  text?: string;
+  /** Typography for text blocks */
+  textStyle?: TextElementStyle;
+  /** Margin top as % of screen height (dvh) */
+  marginTop?: number;
+  /** Margin bottom as % of screen height (dvh) */
+  marginBottom?: number;
+  /** Horizontal alignment within the screen */
+  align?: "left" | "center" | "right";
+  /** Push this block (and following flow) toward the bottom via margin-top: auto */
+  pinBottom?: boolean;
+  /** @deprecated free-drag positions — ignored in layout mode */
+  offsetX?: number;
+  offsetY?: number;
+}
+
+export interface EnvelopeIntroSettings {
+  enabled?: boolean;
+  /** Auto-open invitation after N seconds (0 / unset = only on tap) */
+  autoOpenSeconds?: number;
+  /** Vertical packing of the block stack */
+  contentAlign?: "top" | "center" | "bottom";
+  /** Screen padding (px) */
+  paddingTop?: number;
+  paddingBottom?: number;
+  paddingX?: number;
+  /** @deprecated use contentAlign */
+  layout?: "top" | "center" | "bottom";
+  /** Ordered stacked elements on the intro screen */
+  blocks?: EnvelopeIntroBlock[];
+  title?: string;
+  showTitle?: boolean;
+  titleFont?: string;
+  titleSize?: number;
+  titleItalic?: boolean;
+  textColor?: string;
+  ctaLabel?: string;
+  showCta?: boolean;
+  showArrow?: boolean;
+  subtitle?: string;
+  showSubtitle?: boolean;
+  /** Override seal initials; falls back to theme/event monogram */
+  monogram?: string;
+  showSeal?: boolean;
+  showPlayIcon?: boolean;
+  sealColor?: string;
+  sealSize?: "sm" | "md" | "lg";
+  backgroundColor?: string;
+  backgroundImageUrl?: string;
+  backgroundOverlay?: number;
+  envelopeColor?: string;
+  flapColor?: string;
+  /** Photo shown on the envelope body */
+  envelopeImageUrl?: string;
+  envelopeStyle?: "classic" | "photo" | "minimal";
+  envelopeWidth?: "narrow" | "normal" | "wide";
+  contentGap?: number;
+}
+
 export interface CustomTheme {
   primaryColor?: string;
   secondaryColor?: string;
@@ -37,6 +105,7 @@ export interface CustomTheme {
   pagePaddingLeft?: number;
   pagePaddingRight?: number;
   blockGap?: number;
+  envelopeIntro?: EnvelopeIntroSettings;
 }
 
 export interface ScheduleItem {

@@ -7,7 +7,7 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import type { Event, GuestGroup, Guest, GuestResponse, Template } from "@prisma/client";
-import { ExternalLink, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { EventCardActions } from "./event-card-actions";
 import { EVENT_TYPE_LABELS, EVENT_STATUS_LABELS } from "@/lib/i18n/uk";
 
@@ -18,7 +18,6 @@ type EventWithRelations = Event & {
 
 export function EventCard({ event }: { event: EventWithRelations }) {
   const stats = computeEventStats(event.guestGroups);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-md">
@@ -39,6 +38,11 @@ export function EventCard({ event }: { event: EventWithRelations }) {
         <p className="text-sm text-muted-foreground">
           {EVENT_TYPE_LABELS[event.eventType] ?? event.eventType} · {format(new Date(event.eventDate), "PPP", { locale: uk })}
         </p>
+        {event.status !== "PUBLISHED" && (
+          <p className="text-xs text-amber-700">
+            Чернетка — опублікуйте, щоб гості могли відкрити публічне посилання.
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
@@ -56,17 +60,9 @@ export function EventCard({ event }: { event: EventWithRelations }) {
           <Link href={`/dashboard/events/${event.id}`}>
             <Button size="sm" variant="secondary">Керувати</Button>
           </Link>
-          {event.status === "PUBLISHED" && (
-            <Link href={`/invite/${event.slug}`} target="_blank">
-              <Button size="sm" variant="outline">
-                <ExternalLink className="h-3 w-3" /> Переглянути
-              </Button>
-            </Link>
-          )}
           <EventCardActions
             eventId={event.id}
             slug={event.slug}
-            appUrl={appUrl}
             published={event.status === "PUBLISHED"}
           />
         </div>

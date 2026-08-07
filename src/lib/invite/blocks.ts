@@ -31,7 +31,7 @@ export function syncBlocksFromEvent(
 
 /** Block types that pull live data from the event (left panel). */
 export const EVENT_DATA_BLOCKS: Partial<Record<BlockType, string>> = {
-  hero: "Назва, організатори, обкладинка",
+  hero: "Назва, організатори, обкладинка, музика",
   monogram: "Монограма з імен",
   countdown: "Дата і час",
   calendar: "Дата події",
@@ -205,6 +205,13 @@ export function createBlock(type: BlockType): DesignBlock {
           textAnimation: "fade",
           textAnimationDelay: 200,
           textAnimationDuration: 550,
+          showMusicPlayer: false,
+          musicPlayerStyle: "overlay",
+          musicTitle: "",
+          musicArtist: "",
+          musicOffsetX: 50,
+          musicOffsetY: 75,
+          musicLoop: true,
         },
         style: { ...base.style, imageWidth: 100, imageHeight: 256, borderRadius: 12, objectFit: "cover", objectPosition: "center" },
         animation: "none" as const,

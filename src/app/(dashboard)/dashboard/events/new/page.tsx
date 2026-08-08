@@ -39,26 +39,26 @@ export default function NewEventPage() {
   }, []);
 
   return (
-    <DashboardShell>
+    <DashboardShell title="Нове запрошення">
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
         {!error ? (
           <>
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             <div>
-              <p className="font-medium">Створення запрошення...</p>
+              <p className="text-sm font-medium">Створення запрошення...</p>
               <p className="text-sm text-muted-foreground">Відкриваємо редактор дизайну</p>
             </div>
           </>
         ) : (
           <>
-            <p className="text-destructive">{error}</p>
+            <p className="text-sm text-red-600">{error}</p>
             <button
               type="button"
               onClick={() => {
                 started.current = false;
                 createAndOpenEditor();
               }}
-              className="text-sm font-medium text-primary underline"
+              className="text-base font-medium text-foreground underline"
             >
               Спробувати ще раз
             </button>

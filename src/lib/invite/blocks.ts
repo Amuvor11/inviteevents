@@ -348,6 +348,10 @@ export function createBlock(type: BlockType): DesignBlock {
         style: {
           ...base.style,
           borderRadius: 16,
+          paddingTop: 16,
+          paddingBottom: 16,
+          paddingLeft: 16,
+          paddingRight: 16,
         },
       };
     case "section":

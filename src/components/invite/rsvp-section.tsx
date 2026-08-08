@@ -58,7 +58,7 @@ export function RsvpSection({
   const chrome = resolveRsvpChrome(theme, resolvedBlock);
 
   return (
-    <SectionReveal className="px-4 pb-12">
+    <SectionReveal className="px-4 pb-8">
       <div className={chrome.cardClassName} style={chrome.cardStyle}>
         <RsvpFormBody
           theme={theme}

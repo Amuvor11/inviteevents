@@ -110,6 +110,7 @@ function BlockWrapper({
   const coverLayout = getCoverLayout(block);
   const isSection = block.type === "section";
   const isButton = block.type === "button";
+  const isRsvp = block.type === "rsvp";
   const radius = bleed || isSection || edgeToEdge || isButton ? 0 : block.style.borderRadius;
   const metrics = pageLayoutMetrics(theme);
   const bottomEdge = bleed || isSection || inSection || isButton ? "none" : getBottomEdgeStyle(block.data);
@@ -167,7 +168,7 @@ function BlockWrapper({
           borderRadius: 0,
           maxWidth: 100,
         }
-      : isButton
+      : isButton || isRsvp
         ? {
             ...block.style,
             paddingTop: 0,
@@ -175,7 +176,7 @@ function BlockWrapper({
             paddingLeft: 0,
             paddingRight: 0,
             backgroundColor: undefined,
-            borderRadius: 0,
+            borderRadius: isRsvp ? block.style.borderRadius : 0,
             maxWidth: undefined,
           }
         : block.style;
@@ -899,7 +900,7 @@ export function BlockRenderer({
     case "rsvp":
       if (preview) {
         return wrap(
-          <RsvpFormPreview theme={theme} block={block} questions={event.questions} className="p-4 sm:p-6" />,
+          <RsvpFormPreview theme={theme} block={block} questions={event.questions} />,
         );
       }
       return null;

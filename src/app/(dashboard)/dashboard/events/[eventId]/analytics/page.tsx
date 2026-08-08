@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { DashboardShell, DashboardNav } from "@/components/dashboard/shell";
+import { DashboardShell } from "@/components/dashboard/shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { SurveyAnalyticsSummary } from "@/types";
 
@@ -22,9 +22,8 @@ export default function AnalyticsPage() {
   const analytics = summary?.questions ?? [];
 
   return (
-    <DashboardShell>
-      <DashboardNav eventId={eventId} />
-      <h1 className="mb-6 text-2xl font-bold">Аналітика опитування</h1>
+    <DashboardShell title="Аналітика">
+      <h2 className="mb-6 text-xl font-semibold tracking-tight">Аналітика опитування</h2>
 
       {summary && (
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
@@ -55,7 +54,7 @@ export default function AnalyticsPage() {
                         <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                         <YAxis allowDecimals={false} />
                         <Tooltip />
-                        <Bar dataKey="count" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="count" fill="#f06632" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                     <ResponsiveContainer width="100%" height={250}>

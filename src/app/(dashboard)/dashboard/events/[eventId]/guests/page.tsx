@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { DashboardShell, DashboardNav } from "@/components/dashboard/shell";
+import { DashboardShell } from "@/components/dashboard/shell";
 import { GuestPersonalizationPanel } from "@/components/dashboard/guest-personalization-panel";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
@@ -97,18 +97,22 @@ export default function GuestsPage() {
   };
 
   return (
-    <DashboardShell>
-      <DashboardNav eventId={eventId} />
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+    <DashboardShell title="Гості">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5 dark:border-border">
         <div>
-          <h1 className="text-2xl font-bold">Керування гостями</h1>
-          <p className="text-sm text-muted-foreground">Кожен гість отримує персональне посилання на запрошення</p>
+          <h2 className="text-xl font-semibold tracking-tight">Керування гостями</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Кожен гість отримує персональне посилання на запрошення</p>
         </div>
         <div className="flex gap-2">
           <a href={`/api/events/${eventId}/guest-groups?format=csv`}>
             <Button variant="outline" size="sm"><Download className="h-4 w-4" /> Експорт CSV</Button>
           </a>
-          <Button size="sm" onClick={() => setShowForm(!showForm)}><Plus className="h-4 w-4" /> Додати групу</Button>
+          <Button
+            size="sm"
+            onClick={() => setShowForm(!showForm)}
+          >
+            <Plus className="h-4 w-4" /> Додати групу
+          </Button>
         </div>
       </div>
 

@@ -19,7 +19,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { DashboardShell, DashboardNav } from "@/components/dashboard/shell";
+import { DashboardShell } from "@/components/dashboard/shell";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -132,9 +132,8 @@ export default function QuestionsPage() {
   const choiceTypes = ["SINGLE_CHOICE", "MULTIPLE_CHOICE", "SELECT"];
 
   return (
-    <DashboardShell>
-      <DashboardNav eventId={eventId} />
-      <h1 className="mb-6 text-2xl font-bold">Конструктор опитування</h1>
+    <DashboardShell title="Опитування">
+      <h2 className="mb-6 text-xl font-semibold tracking-tight">Конструктор опитування</h2>
 
       <Card className="mb-6">
         <CardHeader><CardTitle>Додати питання</CardTitle></CardHeader>

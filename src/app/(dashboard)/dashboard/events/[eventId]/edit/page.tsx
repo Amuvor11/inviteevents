@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { DashboardShell, DashboardNav } from "@/components/dashboard/shell";
+import { DashboardShell } from "@/components/dashboard/shell";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,19 +118,22 @@ export default function EditEventPage() {
     fetch(`/api/events/${eventId}`).then((r) => r.json()).then((j) => setEvent(j.data));
   };
 
-  if (!event) return <DashboardShell><p className="p-8">Завантаження...</p></DashboardShell>;
+  if (!event) return <DashboardShell title="Налаштування"><p className="text-sm text-muted-foreground">Завантаження...</p></DashboardShell>;
 
   const rawTemplateName = (event as { template?: { name?: string } }).template?.name ?? "Classic";
   const templateName = TEMPLATE_LABELS[rawTemplateName] ?? rawTemplateName;
 
   return (
-    <DashboardShell>
-      <DashboardNav eventId={eventId} />
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Button onClick={publish} disabled={(event as { status?: string }).status === "PUBLISHED"}>
+    <DashboardShell title="Налаштування">
+      <div className="mb-5 flex flex-wrap gap-2 border-b border-border pb-5 dark:border-border">
+        <Button
+          size="sm"
+          onClick={publish}
+          disabled={(event as { status?: string }).status === "PUBLISHED"}
+        >
           Опублікувати
         </Button>
-        <Button variant="outline" onClick={toggleRsvp}>
+        <Button variant="outline" size="sm" onClick={toggleRsvp}>
           {(event as { rsvpClosed?: boolean }).rsvpClosed ? "Відкрити RSVP" : "Закрити RSVP"}
         </Button>
       </div>

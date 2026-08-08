@@ -125,15 +125,23 @@ export function resolveRsvpChrome(
       ? style.backgroundColor
       : theme.primaryColor;
   const borderRadius = style.borderRadius ?? 16;
+  const paddingTop = style.paddingTop ?? 8;
+  const paddingBottom = style.paddingBottom ?? 8;
+  const paddingLeft = style.paddingLeft ?? 8;
+  const paddingRight = style.paddingRight ?? 8;
 
   const cardBackground = resolveCardFill(surface, theme, customBg);
   const base = contrastBase(surface, theme, customBg);
   const cardIsDark = isDarkColor(base);
 
-  let cardClassName = "mx-auto max-w-lg p-6 sm:p-8";
+  let cardClassName = "mx-auto max-w-lg";
   const cardStyle: CSSProperties = {
     borderRadius,
     backgroundColor: cardBackground,
+    paddingTop,
+    paddingBottom,
+    paddingLeft,
+    paddingRight,
   };
 
   if (surface === "glass") {

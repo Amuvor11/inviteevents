@@ -7,19 +7,28 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
+const raised =
+  "border-2 border-btn-ledge bg-btn-face text-btn-ink shadow-[0_3px_0_0_var(--btn-ledge)] " +
+  "hover:-translate-y-0.5 hover:shadow-[0_5px_0_0_var(--btn-ledge)] hover:bg-[#f7f7f5] " +
+  "active:translate-y-[2px] active:shadow-[0_1px_0_0_var(--btn-ledge)] " +
+  "disabled:translate-y-0 disabled:shadow-[0_3px_0_0_var(--btn-ledge)]";
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", loading, children, disabled, ...props }, ref) => {
     const variants = {
-      primary: "bg-primary text-primary-foreground hover:opacity-90",
-      secondary: "bg-secondary text-secondary-foreground hover:opacity-90",
-      ghost: "hover:bg-accent hover:text-accent-foreground",
-      destructive: "bg-destructive text-white hover:opacity-90",
-      outline: "border border-border bg-transparent hover:bg-accent",
+      primary: raised,
+      secondary: raised,
+      outline: raised,
+      destructive:
+        "border-2 border-destructive bg-btn-face text-destructive shadow-[0_3px_0_0_var(--destructive)] " +
+        "hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-[0_5px_0_0_var(--destructive)] " +
+        "active:translate-y-[2px] active:shadow-[0_1px_0_0_var(--destructive)]",
+      ghost: "bg-transparent text-foreground shadow-none hover:bg-[#e8e8e6] hover:text-foreground",
     };
     const sizes = {
-      sm: "h-8 px-3 text-sm",
-      md: "h-10 px-4 text-sm",
-      lg: "h-12 px-6 text-base",
+      sm: "h-8 px-4 py-1.5 text-sm",
+      md: "h-9 px-5 py-1.5 text-[0.95rem]",
+      lg: "h-10 px-6 py-2 text-base",
     };
 
     return (
@@ -27,7 +36,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md font-semibold transition-[transform,box-shadow,background-color,filter] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
           variants[variant],
           sizes[size],
           className

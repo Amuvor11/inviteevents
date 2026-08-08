@@ -43,10 +43,10 @@ export default function LandingPage() {
             <Sparkles className="h-4 w-4 text-primary" />
             Весілля · Дні народження · Святкування
           </p>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+          <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">
             Створюйте красиві онлайн-запрошення
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-6 max-w-2xl text-xl text-muted-foreground">
             Дизайн цифрових запрошень, керування гостями, збір RSVP з опитуваннями та відстеження відвідуваності — все в одному місці.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">

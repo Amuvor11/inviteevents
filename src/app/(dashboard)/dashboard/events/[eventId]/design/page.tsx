@@ -2,7 +2,6 @@
 
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { DashboardNav } from "@/components/dashboard/shell";
 import { DesignEditor } from "@/components/dashboard/design-editor/design-editor";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -15,30 +14,28 @@ export default function DesignPage() {
   const isCreating = searchParams.get("creating") === "1";
 
   return (
-    <div className="min-h-screen bg-muted/20">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-lg">
-        <div className="flex h-14 items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            {isCreating ? (
-              <Link href="/dashboard">
-                <Button size="sm" variant="ghost">
-                  <ArrowLeft className="h-4 w-4" /> Назад
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/dashboard" className="font-bold">
-                Invite<span className="text-primary">Events</span>
-              </Link>
-            )}
-            {isCreating && (
-              <span className="hidden text-sm text-muted-foreground sm:inline">Створення запрошення</span>
-            )}
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur dark:border-border dark:bg-background/90">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link href={isCreating ? "/dashboard" : `/dashboard/events/${eventId}`}>
+            <Button size="sm" variant="ghost" className="text-foreground/70 dark:text-muted-foreground">
+              <ArrowLeft className="h-4 w-4" />
+              Назад
+            </Button>
+          </Link>
+          <div className="hidden items-center gap-2 text-sm sm:flex">
+            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground/80 dark:hover:text-foreground">
+              InviteEvents
+            </Link>
+            <span className="text-muted-foreground/50 dark:text-muted-foreground">/</span>
+            <span className="font-medium tracking-tight">
+              {isCreating ? "Створення запрошення" : "Дизайн"}
+            </span>
           </div>
-          <ThemeToggle />
         </div>
+        <ThemeToggle />
       </header>
       <div className="px-4 pb-4 pt-4">
-        {!isCreating && <DashboardNav eventId={eventId} />}
         <DesignEditor
           eventId={eventId}
           setupMode={isCreating}

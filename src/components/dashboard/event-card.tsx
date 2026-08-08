@@ -1,13 +1,10 @@
-import { computeEventStats } from "@/lib/analytics/event-stats";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import type { Event, GuestGroup, Guest, GuestResponse, Template } from "@prisma/client";
-import { Users } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { EventCardActions } from "./event-card-actions";
 import { EVENT_TYPE_LABELS, EVENT_STATUS_LABELS } from "@/lib/i18n/uk";
 
@@ -17,65 +14,59 @@ type EventWithRelations = Event & {
 };
 
 export function EventCard({ event }: { event: EventWithRelations }) {
-  const stats = computeEventStats(event.guestGroups);
+  const href = `/dashboard/events/${event.id}`;
 
   return (
-    <Card className="overflow-hidden transition-shadow hover:shadow-md">
-      <div className="relative aspect-[16/9] bg-muted">
+    <div className="group relative aspect-square overflow-hidden rounded-lg border-2 border-border bg-card transition-all duration-200 hover:-translate-y-1 hover:border-btn-ledge hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+      <Link href={href} className="absolute inset-0 z-0" aria-label={`Відкрити ${event.title}`}>
+        <span className="sr-only">Відкрити подію</span>
+      </Link>
+
+      <div className="absolute inset-0 bg-muted dark:bg-card">
         {event.coverImageUrl ? (
           <Image src={event.coverImageUrl} alt={event.title} fill className="object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/20 to-secondary text-muted-foreground">
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Немає обкладинки
           </div>
         )}
-        <Badge className="absolute left-3 top-3" variant={event.status === "PUBLISHED" ? "success" : "outline"}>
-          {EVENT_STATUS_LABELS[event.status] ?? event.status}
-        </Badge>
+        <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 via-black/35 to-transparent" />
       </div>
-      <CardHeader className="pb-2">
-        <CardTitle className="line-clamp-1">{event.title}</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          {EVENT_TYPE_LABELS[event.eventType] ?? event.eventType} · {format(new Date(event.eventDate), "PPP", { locale: uk })}
-        </p>
-        {event.status !== "PUBLISHED" && (
-          <p className="text-xs text-amber-700">
-            Чернетка — опублікуйте, щоб гості могли відкрити публічне посилання.
-          </p>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-          <Stat label="Запрошено" value={stats.totalInvitedAttendees} />
-          <Stat label="Прийдуть" value={stats.totalAttendingPeople} color="text-emerald-600" />
-          <Stat label="Відмовились" value={stats.notAttendingGroups} color="text-red-500" />
-          <Stat label="Очікують" value={stats.pendingGroups} color="text-amber-600" />
-        </div>
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {stats.totalAdultsAttending} дорослих</span>
-          <span>{stats.totalChildrenAttending} дітей</span>
-          <span>{stats.maybeGroups} можливо</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/dashboard/events/${event.id}`}>
-            <Button size="sm" variant="secondary">Керувати</Button>
-          </Link>
-          <EventCardActions
-            eventId={event.id}
-            slug={event.slug}
-            published={event.status === "PUBLISHED"}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
-function Stat({ label, value, color }: { label: string; value: number; color?: string }) {
-  return (
-    <div className="rounded-lg bg-muted/50 p-2 text-center">
-      <p className={`text-lg font-bold ${color ?? ""}`}>{value}</p>
-      <p className="text-muted-foreground">{label}</p>
+      <Badge
+        className="absolute left-3 top-3 z-[1] border-white/20 bg-background/90 text-foreground/80 backdrop-blur dark:border-border dark:bg-card/90 dark:text-foreground"
+        variant={event.status === "PUBLISHED" ? "success" : "outline"}
+      >
+        {EVENT_STATUS_LABELS[event.status] ?? event.status}
+      </Badge>
+
+      <div className="absolute inset-x-0 bottom-0 z-[1] p-3">
+        <div className="flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="line-clamp-1 text-sm font-semibold tracking-tight text-[#f8e8d4] group-hover:underline">
+              {event.title || "Без назви"}
+            </h3>
+            <p className="mt-0.5 line-clamp-1 text-xs text-[#f8e8d4]/75">
+              {EVENT_TYPE_LABELS[event.eventType] ?? event.eventType} ·{" "}
+              {format(new Date(event.eventDate), "d MMM yyyy", { locale: uk })}
+            </p>
+          </div>
+          <div className="relative z-10 flex shrink-0 items-center gap-1.5">
+            <Link
+              href={href}
+              className="inline-flex h-8 items-center gap-1 rounded-md border-2 border-btn-ledge bg-btn-face px-4 py-1.5 text-xs font-semibold text-btn-ink shadow-[0_3px_0_0_var(--btn-ledge)] transition-[transform,box-shadow,background-color] duration-150 hover:-translate-y-0.5 hover:bg-[#f7f7f5] hover:shadow-[0_5px_0_0_var(--btn-ledge)] active:translate-y-[2px] active:shadow-[0_1px_0_0_var(--btn-ledge)]"
+            >
+              Відкрити
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+            <EventCardActions
+              eventId={event.id}
+              slug={event.slug}
+              published={event.status === "PUBLISHED"}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
